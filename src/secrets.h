@@ -1,5 +1,5 @@
 #define SECRET_SSID "Sly.fi"
-#define SECRET_PASS "pass"
+#define SECRET_PASS "chiroptera"
 
-#define SECRET_CH_ID 7
-#define SECRET_WRITE_APIKEY "apikey"
+#define SECRET_CH_ID 2382251
+#define SECRET_WRITE_APIKEY "3LV9TLK99VZYUM0H"

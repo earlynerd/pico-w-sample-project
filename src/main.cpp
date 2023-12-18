@@ -12,52 +12,38 @@ const int phsensorpin = 26;
 char ssid[] = SECRET_SSID; // your network SSID (name)
 char pass[] = SECRET_PASS; // your network password
 int keyIndex = 0;          // your network key Index number (needed only for WEP)
-WiFiClientSecure client;
+WiFiClient client;
 
 unsigned long myChannelNumber = SECRET_CH_ID;
 const char *myWriteAPIKey = SECRET_WRITE_APIKEY;
 
-// Fingerprint check, make sure that the certificate has not expired.
-const char *fingerprint = NULL; // use SECRET_SHA1_FINGERPRINT for fingerprint check
 
 void setup()
 {
   analogReadResolution(12);
   Serial.begin(115200);
-  WiFi.mode(WIFI_STA);
-
-  if (fingerprint != NULL)
-  {
-    client.setFingerprint(fingerprint);
-  }
-  else
-  {
-    client.setInsecure(); // To perform a simple SSL Encryption
-  }
-
+  while(!Serial);
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, HIGH);
+  WiFi.begin(ssid, pass);
+  uint32_t wifiStartTime = millis();
+  Serial.println("wifi begin");
+  while((WiFi.status() != WL_CONNECTED) && (millis() - wifiStartTime < 10000));
+  if(WiFi.status() == WL_CONNECTED) Serial.println("wifi connected");
   ThingSpeak.begin(client); // Initialize ThingSpeak
 }
 
 void loop()
 {
   // Connect or reconnect to WiFi
-  if (WiFi.status() != WL_CONNECTED)
-  {
-    Serial.print("Attempting to connect to SSID: ");
-    Serial.println(SECRET_SSID);
-    while (WiFi.status() != WL_CONNECTED)
-    {
-      WiFi.begin(ssid, pass); // Connect to WPA/WPA2 network. Change this line if using open or WEP network
-      Serial.print(".");
-      delay(5000);
-    }
-    Serial.println("\nConnected.");
-  }
-  while (true)
-  {
+  
+  
+
     int reading = analogRead(phsensorpin);
     Serial.print("Raw Analog Value: ");
     Serial.println(reading);
+    
+    
     ThingSpeak.setField(1, reading);
     int x = ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);
     if (x == 200)
@@ -68,6 +54,21 @@ void loop()
     {
       Serial.println("Problem updating channel. HTTP error code " + String(x));
     }
-    delay(10000);
+    
+    
+   delay(5000);
+  if (WiFi.status() != WL_CONNECTED)
+  {
+    Serial.print("Attempting to reconnect to SSID: ");
+    Serial.println(SECRET_SSID);
+    WiFi.begin(ssid, pass); // Connect to WPA/WPA2 network. Change this line if using open or WEP network
+    uint32_t startTime = millis();
+    while ((WiFi.status() != WL_CONNECTED) && (millis() - startTime < 8000))
+    {
+      Serial.print(".");
+      delay(250);
+    }
+    if(WiFi.status() == WL_CONNECTED) Serial.println("\nConnected.");
+    else Serial.println("Reconenct fail");
   }
 }
